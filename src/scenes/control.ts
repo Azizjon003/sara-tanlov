@@ -37,4 +37,9 @@ scene.hears("📃Aksiya haqida", async (ctx) => {
   const { chatId, messageId } = parseTelegramLink(text?.link || "salom");
   bot.telegram.copyMessage(ctx.from.id, chatId, Number(messageId), {});
 });
+
+scene.hears("📮Kodni yuborish", async (ctx: any) => {
+  ctx.reply("Kodni yuboring");
+  return await ctx.scene.enter("enterCode");
+});
 export default scene;

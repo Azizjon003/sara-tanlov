@@ -16,7 +16,7 @@ scene.enter(async (ctx: any) => {
 
   const enable = await enabled(String(user_id), String(user_name));
 
-  if (enable === "one" || enable === "four") {
+  if (enable === "one") {
     ctx.telegram.sendMessage(
       user_id,
       `Assalomu alaykum!\n`,
@@ -38,6 +38,7 @@ scene.enter(async (ctx: any) => {
     return;
   } else if (enable === "four") {
     ctx.telegram.sendMessage(
+      user_id,
       `"Telefon raqamini yuborish" tugmasini bosing yoki telefon raqamingizni yozib qoldiring:`,
       {
         reply_markup: {
@@ -48,6 +49,8 @@ scene.enter(async (ctx: any) => {
         },
       }
     );
+
+    return await ctx.scene.enter("contact");
   }
 });
 

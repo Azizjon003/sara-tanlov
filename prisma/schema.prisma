@@ -28,6 +28,7 @@ model User {
   isActive  Boolean @default(true)
   region    String?
   phone     String? @unique
+  codes     user_codes[]
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 }
@@ -47,6 +48,26 @@ model channels {
   name      String
   link      String
   type      String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model code {
+  id        String  @id @default(uuid())
+  code      String   @unique
+  isUsed    Boolean @default(false)
+  user_codes user_codes[]
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+
+model user_codes {
+  id       String  @id @default(uuid())
+  user_id   String
+  code_id   String  @unique
+  user      User    @relation(fields: [user_id], references: [id])
+  code      code    @relation(fields: [code_id], references: [id])
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 }

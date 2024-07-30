@@ -140,3 +140,8 @@ export function parseTelegramLink(link: string) {
     };
   }
 }
+
+export function checkUzbekPhoneNumber(phoneNumber: string) {
+  const regex = /^\+998[012345789][0-9]{8}$/;
+  return regex.test(phoneNumber);
+}
