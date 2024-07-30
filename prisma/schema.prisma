@@ -27,6 +27,7 @@ model User {
   telegram_id String @unique
   isActive  Boolean @default(true)
   region    String?
+  phone     String? @unique
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 }
