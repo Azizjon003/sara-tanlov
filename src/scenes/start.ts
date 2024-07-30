@@ -36,6 +36,18 @@ scene.enter(async (ctx: any) => {
       "Assalomu alaykum.Kechirasiz siz admin tomonidan bloklangansiz"
     );
     return;
+  } else if (enable === "four") {
+    ctx.telegram.sendMessage(
+      `"Telefon raqamini yuborish" tugmasini bosing yoki telefon raqamingizni yozib qoldiring:`,
+      {
+        reply_markup: {
+          keyboard: [
+            [{ text: "Telefon raqamini yuborish", request_contact: true }],
+          ],
+          resize_keyboard: true,
+        },
+      }
+    );
   }
 });
 
