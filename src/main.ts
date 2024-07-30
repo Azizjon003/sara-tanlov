@@ -5,8 +5,10 @@ import bot from "./core/bot";
 import session from "./core/session";
 import stage from "./scenes/index";
 import botStart from "./utils/startBot";
+import { subcribeFunk } from "./utils/subcribe";
 
 bot.use(session);
+bot.use(subcribeFunk);
 
 const middleware: Middleware<Context | SceneContext> = (ctx: any, next) => {
   ctx?.session ?? (ctx.session = {});

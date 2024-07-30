@@ -3,7 +3,10 @@ import enabled from "../utils/enabled";
 import { keyboards } from "../utils/keyboards";
 const scene = new Scenes.BaseScene("start");
 
-export let keyboard = [["Start"]];
+export let keyboard = [
+  ["📮Kodni yuborish"],
+  ["🎁Sovg'alar", "📃Aksiya haqida"],
+];
 export let admin_keyboard = [["Admin"]];
 
 scene.enter(async (ctx: any) => {
@@ -16,11 +19,11 @@ scene.enter(async (ctx: any) => {
   if (enable === "one" || enable === "four") {
     ctx.telegram.sendMessage(
       user_id,
-      `Assalomu alaykum!\nYangi Taqdimot tugmasini bosib taqdimot yaratishni boshlashingiz mumkin!`,
+      `Assalomu alaykum!\n`,
       keyboards(keyboard)
     );
 
-    console.log("start scene");
+    console.log("start scene", user_name);
     return await ctx.scene.enter("control");
   } else if (enable === "two") {
     const text = "Assalomu alaykum Admin xush kelibsiz";

@@ -104,7 +104,7 @@ export const parseItems = (dataString: string) => {
 };
 
 export const parseTitles = (rawData: string) => {
-  const regexPattern = /"uzTitle": "(.*?)",\s*"enTitle": "(.*?)"/gs;
+  const regexPattern = /"uzTitle": "(.*?)",\s*"enTitle": "(.*?)"/g;
   let matches;
   const results = [];
 
@@ -118,3 +118,25 @@ export const parseTitles = (rawData: string) => {
 
   return results;
 };
+
+export function parseTelegramLink(link: string) {
+  try {
+    const regex = /https:\/\/t\.me\/c\/(\d+)\/(\d+)/;
+    const match = link.match(regex);
+
+    if (match && match.length === 3) {
+      const chatId = "-100" + match[1];
+      const messageId = parseInt(match[2]);
+
+      return { chatId, messageId };
+    } else {
+      throw new Error("Noto'g'ri format");
+    }
+  } catch (error: any) {
+    console.error("Havolani tahlil qilishda xatolik:", error.message);
+    return {
+      chatId: "",
+      messageId: "",
+    };
+  }
+}

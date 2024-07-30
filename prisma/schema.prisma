@@ -26,7 +26,26 @@ model User {
   role      RoleEnum @default(USER)
   telegram_id String @unique
   isActive  Boolean @default(true)
-working      Boolean @default(false)
+  region    String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+
+model message {
+  id        String  @id @default(uuid())
+  link      String
+  type      String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+
+model channels {
+  id        String  @id @default(uuid())
+  name      String
+  link      String
+  type      String
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 }
