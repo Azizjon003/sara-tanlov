@@ -1,5 +1,7 @@
 const { Scenes } = require("telegraf");
+import addChannel from "./addChannel";
 import admin from "./admin";
+import channelEdit from "./channelsEdit";
 import contact from "./contact";
 import control from "./control";
 import enterCode from "./enterCode";
@@ -12,6 +14,8 @@ const stage = new Scenes.Stage([
   enterCode,
   admin,
   getCodes,
+  channelEdit,
+  addChannel,
 ]);
 
 export default stage;
