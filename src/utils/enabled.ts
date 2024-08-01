@@ -20,7 +20,7 @@ const enabled = async (id: string, name: string): Promise<enabledEnum> => {
       return enabledEnum.three;
     }
     if (user.role === "USER") {
-      if (!user.phone) {
+      if (!user.phone || !user.region) {
         console.log("working");
         return enabledEnum.four;
       }
@@ -39,7 +39,7 @@ const enabled = async (id: string, name: string): Promise<enabledEnum> => {
       },
     });
 
-    return enabledEnum.one;
+    return enabledEnum.four;
   }
 };
 

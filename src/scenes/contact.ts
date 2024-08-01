@@ -2,9 +2,24 @@ import { Scenes } from "telegraf";
 import prisma from "../../prisma/prisma";
 import { checkUzbekPhoneNumber } from "../utils/functions";
 import { keyboards } from "../utils/keyboards";
-import { keyboard } from "./start";
 const scene = new Scenes.BaseScene("contact");
 
+export const uzbekistanRegions = [
+  "Toshkent shahri",
+  "Toshkent viloyati",
+  "Andijon viloyati",
+  "Buxoro viloyati",
+  "Farg'ona viloyati",
+  "Jizzax viloyati",
+  "Xorazm viloyati",
+  "Namangan viloyati",
+  "Navoiy viloyati",
+  "Qashqadaryo viloyati",
+  "Qoraqalpog'iston Respublikasi",
+  "Samarqand viloyati",
+  "Sirdaryo viloyati",
+  "Surxondaryo viloyati",
+];
 scene.hears("/start", async (ctx: any) => {
   return await ctx.scene.enter("start");
 });
@@ -51,8 +66,11 @@ scene.on("message", async (ctx: any) => {
     },
   });
 
-  await ctx.reply("Raqamingiz qabul qilindi", keyboards(keyboard));
+  await ctx.reply(
+    "Raqamingiz qabul qilindi\nIltimos, viloyatingizni tanlang:",
+    keyboards(uzbekistanRegions)
+  );
 
-  return await ctx.scene.enter("control");
+  return await ctx.scene.enter("region");
 });
 export default scene;
