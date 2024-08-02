@@ -29,6 +29,7 @@ model User {
   region    String?
   phone     String? @unique
   codes     user_codes[]
+  receivedGifts UserGift[]
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 }
@@ -70,4 +71,26 @@ model user_codes {
   code      code    @relation(fields: [code_id], references: [id])
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+}
+
+model Gift {
+  id          String       @id @default(uuid())
+  name        String
+  description String?
+  value       Int
+  quantity    Int
+  isAvailable Boolean      @default(true)
+  imageUrl    String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  userGifts   UserGift[]
+}
+
+model UserGift {
+  id        String   @id @default(uuid())
+  userId    String
+  giftId    String
+  receivedAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  gift      Gift     @relation(fields: [giftId], references: [id])
 }
