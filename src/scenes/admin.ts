@@ -1,5 +1,7 @@
 import { Scenes } from "telegraf";
 import prisma from "../../prisma/prisma";
+import { keyboards } from "../utils/keyboards";
+import { uzbekistanRegions } from "./contact";
 const scene = new Scenes.BaseScene("admin");
 
 scene.hears("/start", async (ctx: any) => {
@@ -48,6 +50,25 @@ scene.hears("Kanallar", async (ctx: any) => {
   });
 
   return ctx.scene.enter("editChannel");
+});
+
+scene.hears("Xabar yuborish", async (ctx: any) => {
+  await ctx.reply(
+    "Xabar yubormoqchi bo'lgan viloyatni tanlang:",
+    keyboards([...uzbekistanRegions, "Barcha viloyatlar"])
+  );
+
+  return ctx.scene.enter("sendMessage");
+});
+
+scene.hears("📊Statistika", async (ctx: any) => {
+  const users = await prisma.user.findMany();
+  const channels = await prisma.channels.findMany();
+
+  const text = `📊 Statistika:\n\n👤 Foydalanuvchilar soni: ${users.length}\n📺 Kanallar soni: ${channels.length}`;
+
+  await ctx.reply(text);
+  return ctx.scene.enter("admin");
 });
 
 export default scene;

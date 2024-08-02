@@ -7,6 +7,7 @@ import control from "./control";
 import enterCode from "./enterCode";
 import getCodes from "./getCodes";
 import region from "./region";
+import sendMessage from "./sendMessage";
 import start from "./start";
 const stage = new Scenes.Stage([
   start,
@@ -18,6 +19,7 @@ const stage = new Scenes.Stage([
   channelEdit,
   addChannel,
   region,
+  sendMessage,
 ]);
 
 export default stage;

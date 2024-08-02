@@ -9,7 +9,7 @@ export let keyboard = [
 ];
 export let admin_keyboard = [
   ["Kodlarni yaratish", "Kanallar"],
-  ["Xabar yuborish"],
+  ["Xabar yuborish", "📊Statistika"],
 ];
 
 scene.enter(async (ctx: any) => {
