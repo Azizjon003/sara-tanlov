@@ -40,6 +40,7 @@ scene.hears("📃Aksiya haqida", async (ctx) => {
 
 scene.hears("📮Kodni yuborish", async (ctx: any) => {
   ctx.reply("Kodni yuboring");
+  ctx.session.codeAttempts = 0; // Urinishlar sonini kuzatish uchun
   return await ctx.scene.enter("enterCode");
 });
 export default scene;
