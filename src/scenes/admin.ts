@@ -71,4 +71,36 @@ scene.hears("📊Statistika", async (ctx: any) => {
   return ctx.scene.enter("admin");
 });
 
+scene.hears("Kodni olish", async (ctx: any) => {
+  const user_id = ctx.from?.id;
+
+  const user = await prisma.user.findFirst({
+    where: {
+      telegram_id: String(user_id),
+    },
+  });
+
+  if (!user) {
+    return ctx.reply("Sizda kodlar mavjud emas");
+  }
+
+  await prisma.userSession.deleteMany();
+
+  const code = generateRandomCode();
+  await prisma.userSession.create({
+    data: {
+      userId: user.id,
+      enteredCode: code,
+    },
+  });
+
+  return ctx.reply(`🔑 Kod: ${code}`);
+});
+
+function generateRandomCode(): string {
+  const min = 100000; // 6 ta raqamli sonning minimal qiymati
+  const max = 999999; // 6 ta raqamli sonning maksimal qiymati
+  const randomCode = Math.floor(Math.random() * (max - min + 1)) + min;
+  return randomCode.toString();
+}
 export default scene;

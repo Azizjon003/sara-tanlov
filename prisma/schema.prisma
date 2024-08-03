@@ -30,6 +30,7 @@ model User {
   phone     String? @unique
   codes     user_codes[]
   receivedGifts UserGift[]
+  session     UserSession[]
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 }
@@ -93,4 +94,14 @@ model UserGift {
   receivedAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
   gift      Gift     @relation(fields: [giftId], references: [id])
+}
+
+
+model UserSession {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  enteredCode   String?  @unique
+  lastAttemptAt DateTime @updatedAt
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id])
 }
