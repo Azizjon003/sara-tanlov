@@ -15,6 +15,7 @@
   "dependencies": {
     "@prisma/client": "^5.16.1",
     "bcrypt": "^5.1.1",
+    "date-fns": "^3.6.0",
     "dotenv": "^16.4.5",
     "nodemon": "^3.1.4",
     "telegraf": "^4.16.3",

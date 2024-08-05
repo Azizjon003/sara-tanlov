@@ -1,5 +1,9 @@
+import { format, subWeeks } from "date-fns";
+import fs from "fs";
 import { Scenes } from "telegraf";
+import * as XLSX from "xlsx";
 import prisma from "../../prisma/prisma";
+import bot from "../core/bot";
 import { keyboards } from "../utils/keyboards";
 import { uzbekistanRegions } from "./contact";
 const scene = new Scenes.BaseScene("admin");
@@ -71,7 +75,7 @@ scene.hears("📊Statistika", async (ctx: any) => {
   return ctx.scene.enter("admin");
 });
 
-scene.hears("Kodni olish", async (ctx: any) => {
+scene.hears("Kirish kodni olish", async (ctx: any) => {
   const user_id = ctx.from?.id;
 
   const user = await prisma.user.findFirst({
@@ -95,6 +99,136 @@ scene.hears("Kodni olish", async (ctx: any) => {
   });
 
   return ctx.reply(`🔑 Kod: ${code}`);
+});
+
+bot.hears("O'yin haftasini yaratish", async (ctx: any) => {
+  const user_id = ctx.from?.id;
+
+  // Foydalanuvchini tekshirish (admin ekanligini)
+  const user = await prisma.user.findFirst({
+    where: {
+      telegram_id: String(user_id),
+      role: "ADMIN", // Faqat adminlar o'yin haftasini yarata oladi
+    },
+  });
+
+  if (!user) {
+    return ctx.reply("Sizda bu amalni bajarish uchun huquq yo'q.");
+  }
+
+  const endDate = new Date(); // Bugungi sana
+  const startDate = subWeeks(endDate, 1); // Bir hafta oldingi sana
+
+  try {
+    // Mavjud faol o'yin haftasini tekshirish
+    const existingGameWeek = await prisma.gameWeek.findFirst({
+      where: {
+        endDate: { gte: new Date() },
+      },
+    });
+
+    if (existingGameWeek) {
+      return ctx.reply(
+        "Hozirda faol o'yin haftasi mavjud. Yangi hafta yaratish uchun joriy hafta tugashini kuting."
+      );
+    }
+
+    // Yangi o'yin haftasini yaratish
+    const newGameWeek = await prisma.gameWeek.create({
+      data: {
+        startDate,
+        endDate,
+      },
+    });
+
+    const formattedStartDate = format(startDate, "dd.MM.yyyy");
+    const formattedEndDate = format(endDate, "dd.MM.yyyy");
+
+    ctx.reply(
+      `Yangi o'yin haftasi yaratildi:\nBoshlanish sanasi: ${formattedStartDate}\nTugash sanasi: ${formattedEndDate}`
+    );
+  } catch (error) {
+    console.error("O'yin haftasini yaratishda xatolik:", error);
+    ctx.reply(
+      "O'yin haftasini yaratishda xatolik yuz berdi. Iltimos, keyinroq qayta urinib ko'ring."
+    );
+  }
+});
+
+bot.hears("O'yin haftalik hisobotini olish", async (ctx: any) => {
+  const user_id = ctx.from?.id;
+
+  // Foydalanuvchini tekshirish (admin ekanligini)
+  const user = await prisma.user.findFirst({
+    where: {
+      telegram_id: String(user_id),
+      role: "ADMIN", // Faqat adminlar hisobotni ola oladi
+    },
+  });
+
+  if (!user) {
+    return ctx.reply("Sizda bu amalni bajarish uchun huquq yo'q.");
+  }
+
+  try {
+    // Eng so'nggi o'yin haftasini topish
+    const latestGameWeek = await prisma.gameWeek.findFirst({
+      orderBy: { endDate: "desc" },
+    });
+
+    if (!latestGameWeek) {
+      return ctx.reply("Hech qanday o'yin haftasi topilmadi.");
+    }
+
+    // O'yin haftasida qatnashgan foydalanuvchilarni topish
+    const participants = await prisma.userGameParticipation.findMany({
+      where: {
+        gameWeekId: latestGameWeek.id,
+        hasParticipated: true,
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    // Excel fayli uchun ma'lumotlarni tayyorlash
+    const worksheetData = participants.map((participant, index) => ({
+      "№": index + 1,
+      "Foydalanuvchi nomi": participant.user.name || "Noma'lum",
+      "Telefon raqami": participant.user.phone || "Noma'lum",
+      "Telegram ID": participant.user.telegram_id,
+      "Qatnashgan vaqti": format(participant.updatedAt, "dd.MM.yyyy HH:mm:ss"),
+    }));
+
+    // Excel faylini yaratish
+    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Ishtirokchilar");
+
+    // Fayl nomini shakllantirish
+    const fileName = `O'yin_hafta_hisobot_${format(
+      latestGameWeek.startDate,
+      "dd.MM.yyyy"
+    )}_${format(latestGameWeek.endDate, "dd.MM.yyyy")}.xlsx`;
+
+    // Faylni saqlash
+    XLSX.writeFile(workbook, fileName);
+
+    // Faylni telegram orqali yuborish
+    await ctx.replyWithDocument({ source: fileName });
+
+    // Faylni o'chirish
+    fs.unlinkSync(fileName);
+
+    ctx.reply(
+      `Hisobot yaratildi va yuborildi.\nIshtirokchilar soni: ${participants.length}`
+    );
+  } catch (error) {
+    console.error("Hisobot yaratishda xatolik:", error);
+    ctx.reply(
+      "Hisobot yaratishda xatolik yuz berdi. Iltimos, keyinroq qayta urinib ko'ring."
+    );
+  }
 });
 
 function generateRandomCode(): string {

@@ -31,6 +31,7 @@ model User {
   codes     user_codes[]
   receivedGifts UserGift[]
   session     UserSession[]
+  gameParticipations UserGameParticipation[]
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 }
@@ -94,6 +95,8 @@ model UserGift {
   receivedAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
   gift      Gift     @relation(fields: [giftId], references: [id])
+  gameWeek  GameWeek @relation(fields: [gameWeekId], references: [id])
+  gameWeekId String
 }
 
 
@@ -104,4 +107,27 @@ model UserSession {
   lastAttemptAt DateTime @updatedAt
   createdAt     DateTime @default(now())
   user          User     @relation(fields: [userId], references: [id])
+}
+
+model GameWeek {
+  id        String   @id @default(uuid())
+  startDate DateTime
+  endDate   DateTime
+  userGifts UserGift[]
+  userGameParticipations UserGameParticipation[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserGameParticipation {
+  id        String   @id @default(uuid())
+  userId    String
+  gameWeekId String
+  hasParticipated Boolean @default(false)
+  user      User     @relation(fields: [userId], references: [id])
+  gameWeek  GameWeek @relation(fields: [gameWeekId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, gameWeekId])
 }
