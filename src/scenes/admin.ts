@@ -231,6 +231,75 @@ bot.hears("O'yin haftalik hisobotini olish", async (ctx: any) => {
   }
 });
 
+bot.hears("Faollashtirilgan kodlar hisoboti", async (ctx: any) => {
+  const user_id = ctx.from?.id;
+
+  // Фойдаланувчини текшириш (админ эканлигини)
+  const user = await prisma.user.findFirst({
+    where: {
+      telegram_id: String(user_id),
+      role: "ADMIN", // Фақат админлар ҳисоботни ола олади
+    },
+  });
+
+  if (!user) {
+    return ctx.reply("Sizda bu amalni bajarish uchun huquq yo'q.");
+  }
+
+  try {
+    // Умумий фаоллаштирилган кодлар сонини ҳисоблаш
+    const totalActivatedCodes = await prisma.code.count({
+      where: {
+        isUsed: true,
+      },
+    });
+
+    // Энг сўнгги ўйин ҳафтасини топиш
+    const latestGameWeek = await prisma.gameWeek.findFirst({
+      orderBy: { endDate: "desc" },
+    });
+
+    let weeklyActivatedCodes = 0;
+    let weeklyActivatedCodesMessage = "";
+
+    if (latestGameWeek) {
+      // Охирги ўйин ҳафтасида фаоллаштирилган кодлар сонини ҳисоблаш
+      weeklyActivatedCodes = await prisma.code.count({
+        where: {
+          isUsed: true,
+          user_codes: {
+            some: {
+              created_at: {
+                gte: latestGameWeek.startDate,
+                lte: latestGameWeek.endDate,
+              },
+            },
+          },
+        },
+      });
+
+      weeklyActivatedCodesMessage =
+        `\n\nOxirgi o'yin haftasida faollashtirilgan kodlar soni: ${weeklyActivatedCodes}` +
+        `\n(${format(latestGameWeek.startDate, "dd.MM.yyyy")} - ${format(
+          latestGameWeek.endDate,
+          "dd.MM.yyyy"
+        )})`;
+    }
+
+    // Ҳисоботни юбориш
+    const reportMessage =
+      `Umumiy faollashtirilgan kodlar soni: ${totalActivatedCodes}` +
+      weeklyActivatedCodesMessage;
+
+    ctx.reply(reportMessage);
+  } catch (error) {
+    console.error("Faollashtirilgan kodlar hisobotini olishda xatolik:", error);
+    ctx.reply(
+      "Hisobot olishda xatolik yuz berdi. Iltimos, keyinroq qayta urinib ko'ring."
+    );
+  }
+});
+
 function generateRandomCode(): string {
   const min = 100000; // 6 ta raqamli sonning minimal qiymati
   const max = 999999; // 6 ta raqamli sonning maksimal qiymati
