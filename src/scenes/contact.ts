@@ -26,6 +26,7 @@ scene.hears("/start", async (ctx: any) => {
 
 scene.on("message", async (ctx: any) => {
   const phone = ctx.message?.contact?.phone_number || ctx.message?.text; // message text
+  console.log(phone);
   const isTest = checkUzbekPhoneNumber(phone);
 
   console.log(isTest, phone);
