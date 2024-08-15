@@ -30,14 +30,14 @@ scene.on("message", async (ctx: any) => {
     orderBy: { created_at: "desc" },
   });
 
-  if (
-    lastCodeAttempt &&
-    Date.now() - lastCodeAttempt.created_at.getTime() < 60 * 60 * 1000
-  ) {
-    return ctx.reply(
-      "Siz so'nggi 1 soat ichida kod yuborgansiz. Iltimos, keyinroq urinib ko'ring.Qayta /start buyrug'ini bosgan holda"
-    );
-  }
+  // if (
+  //   lastCodeAttempt &&
+  //   Date.now() - lastCodeAttempt.created_at.getTime() < 60 * 60 * 1000
+  // ) {
+  //   return ctx.reply(
+  //     "Siz so'nggi 1 soat ichida kod yuborgansiz. Iltimos, keyinroq urinib ko'ring.Qayta /start buyrug'ini bosgan holda"
+  //   );
+  // }
 
   const enteredCode = ctx.message.text.trim();
 
