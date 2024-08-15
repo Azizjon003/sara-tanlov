@@ -59,7 +59,7 @@ scene.on("message", async (ctx: any) => {
       await ctx.reply(
         "Siz 3 marta noto'g'ri kod kiritdingiz. Iltimos, keyinroq urinib ko'ring."
       );
-      return ctx.scene.leave();
+      return ctx.scene.enter("control");
     }
     return ctx.reply("Noto'g'ri kod. Iltimos, qaytadan urinib ko'ring:");
   }
