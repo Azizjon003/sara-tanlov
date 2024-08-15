@@ -26,7 +26,7 @@ scene.on("message", async (ctx: any) => {
   }
 
   const lastCodeAttempt = await prisma.user_codes.findFirst({
-    where: { user_id: ctx.from.id.toString() },
+    where: { user: { telegram_id: ctx.from.id.toString() } },
     orderBy: { created_at: "desc" },
   });
 
