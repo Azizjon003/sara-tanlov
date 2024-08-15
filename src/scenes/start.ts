@@ -12,7 +12,10 @@ export let admin_keyboard = [
   ["Xabar yuborish", "📊Statistika"],
   ["Kirish kodni olish"],
   ["O'yin haftasini yaratish"],
-  ["O'yin haftalik hisobotini olish", "Faollashtirilgan kodlar hisoboti"], // Yangi tugma
+  ["Faollashtirilgan kodlar hisoboti oxirgi haftalik"],
+  ["O'yin haftalik hisobotini olish o'yin o'tkazilgan holatdan keyin"], // Yangi tugma
+
+  ["Umumiy hisobot"],
 ];
 
 scene.enter(async (ctx: any) => {

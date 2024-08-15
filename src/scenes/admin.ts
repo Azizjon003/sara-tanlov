@@ -100,7 +100,6 @@ scene.hears("Kirish kodni olish", async (ctx: any) => {
 
   return ctx.reply(`🔑 Kod: ${code}`);
 });
-
 bot.hears("O'yin haftasini yaratish", async (ctx: any) => {
   const user_id = ctx.from?.id;
 
@@ -155,7 +154,263 @@ bot.hears("O'yin haftasini yaratish", async (ctx: any) => {
   }
 });
 
-bot.hears("O'yin haftalik hisobotini olish", async (ctx: any) => {
+bot.hears(
+  "O'yin haftalik hisobotini olish o'yin o'tkazilgan holatdan keyin",
+  async (ctx: any) => {
+    const user_id = ctx.from?.id;
+
+    // Foydalanuvchini tekshirish (admin ekanligini)
+    const user = await prisma.user.findFirst({
+      where: {
+        telegram_id: String(user_id),
+        role: "ADMIN", // Faqat adminlar hisobotni ola oladi
+      },
+    });
+
+    if (!user) {
+      return ctx.reply("Sizda bu amalni bajarish uchun huquq yo'q.");
+    }
+
+    try {
+      // Eng so'nggi o'yin haftasini topish
+      const latestGameWeek = await prisma.gameWeek.findFirst({
+        orderBy: { endDate: "desc" },
+      });
+
+      if (!latestGameWeek) {
+        return ctx.reply("Hech qanday o'yin haftasi topilmadi.");
+      }
+
+      // O'yin haftasida qatnashgan foydalanuvchilarni topish
+      const participants = await prisma.userGameParticipation.findMany({
+        where: {
+          gameWeekId: latestGameWeek.id,
+          hasParticipated: true,
+        },
+
+        include: {
+          user: {
+            include: {
+              receivedGifts: true,
+            },
+          },
+        },
+      });
+
+      // Excel fayli uchun ma'lumotlarni tayyorlash
+      const worksheetData = participants.map((participant, index) => ({
+        "№": index + 1,
+        "Foydalanuvchi nomi": participant.user.name || "Noma'lum",
+        "Telefon raqami": participant.user.phone || "Noma'lum",
+        Viloyat: participant.user.region || "Noma'lum",
+        "Telegram ID": participant.user.telegram_id,
+        "Sovg'a ": participant.user.receivedGifts[0].giftId || "Noma'lum",
+        "Qatnashgan vaqti": format(
+          participant.updatedAt,
+          "dd.MM.yyyy HH:mm:ss"
+        ),
+      }));
+
+      // Excel faylini yaratish
+      const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Ishtirokchilar");
+
+      // Fayl nomini shakllantirish
+      const fileName = `O'yin_hafta_hisobot_${format(
+        latestGameWeek.startDate,
+        "dd.MM.yyyy"
+      )}_${format(latestGameWeek.endDate, "dd.MM.yyyy")}.xlsx`;
+
+      // Faylni saqlash
+      XLSX.writeFile(workbook, fileName);
+
+      // Faylni telegram orqali yuborish
+      await ctx.replyWithDocument({ source: fileName });
+
+      // Faylni o'chirish
+      fs.unlinkSync(fileName);
+
+      ctx.reply(
+        `Hisobot yaratildi va yuborildi.\nIshtirokchilar soni: ${participants.length}`
+      );
+    } catch (error) {
+      console.error("Hisobot yaratishda xatolik:", error);
+      ctx.reply(
+        "Hisobot yaratishda xatolik yuz berdi. Iltimos, keyinroq qayta urinib ko'ring."
+      );
+    }
+  }
+);
+
+// bot.hears("Faollashtirilgan kodlar hisoboti", async (ctx: any) => {
+//   const user_id = ctx.from?.id;
+
+//   // Фойдаланувчини текшириш (админ эканлигини)
+//   const user = await prisma.user.findFirst({
+//     where: {
+//       telegram_id: String(user_id),
+//       role: "ADMIN", // Фақат админлар ҳисоботни ола олади
+//     },
+//   });
+
+//   if (!user) {
+//     return ctx.reply("Sizda bu amalni bajarish uchun huquq yo'q.");
+//   }
+
+//   try {
+//     // Умумий фаоллаштирилган кодлар сонини ҳисоблаш
+//     const totalActivatedCodes = await prisma.code.count({
+//       where: {
+//         isUsed: true,
+//       },
+//     });
+
+//     // Энг сўнгги ўйин ҳафтасини топиш
+//     const latestGameWeek = await prisma.gameWeek.findFirst({
+//       orderBy: { endDate: "desc" },
+//     });
+
+//     let weeklyActivatedCodes = 0;
+//     let weeklyActivatedCodesMessage = "";
+
+//     if (latestGameWeek) {
+//       // Охирги ўйин ҳафтасида фаоллаштирилган кодлар сонини ҳисоблаш
+//       weeklyActivatedCodes = await prisma.code.count({
+//         where: {
+//           isUsed: true,
+//           user_codes: {
+//             some: {
+//               created_at: {
+//                 gte: latestGameWeek.startDate,
+//                 lte: latestGameWeek.endDate,
+//               },
+//             },
+//           },
+//         },
+//       });
+
+//       weeklyActivatedCodesMessage =
+//         `\n\nOxirgi o'yin haftasida faollashtirilgan kodlar soni: ${weeklyActivatedCodes}` +
+//         `\n(${format(latestGameWeek.startDate, "dd.MM.yyyy")} - ${format(
+//           latestGameWeek.endDate,
+//           "dd.MM.yyyy"
+//         )})`;
+//     }
+
+//     // Ҳисоботни юбориш
+//     const reportMessage =
+//       `Umumiy faollashtirilgan kodlar soni: ${totalActivatedCodes}` +
+//       weeklyActivatedCodesMessage;
+
+//     ctx.reply(reportMessage);
+//   } catch (error) {
+//     console.error("Faollashtirilgan kodlar hisobotini olishda xatolik:", error);
+//     ctx.reply(
+//       "Hisobot olishda xatolik yuz berdi. Iltimos, keyinroq qayta urinib ko'ring."
+//     );
+//   }
+// });
+
+bot.hears(
+  "Faollashtirilgan kodlar hisoboti oxirgi haftalik",
+  async (ctx: any) => {
+    const user_id = ctx.from?.id;
+
+    // Foydalanuvchini tekshirish (admin ekanligini)
+    const user = await prisma.user.findFirst({
+      where: {
+        telegram_id: String(user_id),
+        role: "ADMIN", // Faqat adminlar hisobotni ola oladi
+      },
+    });
+
+    if (!user) {
+      return ctx.reply("Sizda bu amalni bajarish uchun huquq yo'q.");
+    }
+
+    try {
+      // Eng so'nggi o'yin haftasini topish
+      const latestGameWeek = await prisma.gameWeek.findFirst({
+        orderBy: { endDate: "desc" },
+      });
+
+      if (!latestGameWeek) {
+        return ctx.reply("Hech qanday o'yin haftasi topilmadi.");
+      }
+
+      // Oxirgi o'yin haftasida faollashtirilgan kodlarni olish
+      const activatedCodes = await prisma.code.findMany({
+        where: {
+          isUsed: true,
+          user_codes: {
+            some: {
+              created_at: {
+                gte: latestGameWeek.startDate,
+                lte: latestGameWeek.endDate,
+              },
+            },
+          },
+        },
+        include: {
+          user_codes: {
+            include: {
+              user: true,
+            },
+          },
+        },
+      });
+
+      // Excel fayli uchun ma'lumotlarni tayyorlash
+      const worksheetData = activatedCodes.map((code, index) => ({
+        "№": index + 1,
+        Kod: code.code,
+        "Foydalanuvchi nomi": code.user_codes[0]?.user.name || "Noma'lum",
+        "Telefon raqami": code.user_codes[0]?.user.phone || "Noma'lum",
+        "Telegram ID": code.user_codes[0]?.user.telegram_id,
+        Viloyat: code.user_codes[0].user.region || "Noma'lum",
+        "Faollashtirilgan vaqt": format(
+          code.user_codes[0]?.created_at,
+          "dd.MM.yyyy HH:mm:ss"
+        ),
+      }));
+
+      // Excel faylini yaratish
+      const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        "Faollashtirilgan Kodlar"
+      );
+
+      // Fayl nomini shakllantirish
+      const fileName = `Faollashtirilgan_Kodlar_Hisobot_${format(
+        latestGameWeek.startDate,
+        "dd.MM.yyyy"
+      )}_${format(latestGameWeek.endDate, "dd.MM.yyyy")}.xlsx`;
+
+      // Faylni saqlash
+      XLSX.writeFile(workbook, fileName);
+
+      // Faylni telegram orqali yuborish
+      await ctx.replyWithDocument({ source: fileName });
+
+      // Faylni o'chirish
+      fs.unlinkSync(fileName);
+
+      ctx.reply(
+        `Hisobot yaratildi va yuborildi.\nFaollashtirilgan kodlar soni: ${activatedCodes.length}`
+      );
+    } catch (error) {
+      console.error("Hisobot yaratishda xatolik:", error);
+      ctx.reply(
+        "Hisobot yaratishda xatolik yuz berdi. Iltimos, keyinroq qayta urinib ko'ring."
+      );
+    }
+  }
+);
+bot.hears("Umumiy hisobot", async (ctx: any) => {
   const user_id = ctx.from?.id;
 
   // Foydalanuvchini tekshirish (admin ekanligini)
@@ -171,45 +426,49 @@ bot.hears("O'yin haftalik hisobotini olish", async (ctx: any) => {
   }
 
   try {
-    // Eng so'nggi o'yin haftasini topish
-    const latestGameWeek = await prisma.gameWeek.findFirst({
-      orderBy: { endDate: "desc" },
-    });
-
-    if (!latestGameWeek) {
-      return ctx.reply("Hech qanday o'yin haftasi topilmadi.");
-    }
-
-    // O'yin haftasida qatnashgan foydalanuvchilarni topish
-    const participants = await prisma.userGameParticipation.findMany({
+    // Barcha faollashtirilgan kodlarni olish
+    const activatedCodes = await prisma.code.findMany({
       where: {
-        gameWeekId: latestGameWeek.id,
-        hasParticipated: true,
+        isUsed: true,
       },
       include: {
-        user: true,
+        user_codes: {
+          include: {
+            user: true,
+          },
+        },
       },
+      orderBy: {},
     });
 
     // Excel fayli uchun ma'lumotlarni tayyorlash
-    const worksheetData = participants.map((participant, index) => ({
+    const worksheetData = activatedCodes.map((code, index) => ({
       "№": index + 1,
-      "Foydalanuvchi nomi": participant.user.name || "Noma'lum",
-      "Telefon raqami": participant.user.phone || "Noma'lum",
-      "Telegram ID": participant.user.telegram_id,
-      "Qatnashgan vaqti": format(participant.updatedAt, "dd.MM.yyyy HH:mm:ss"),
+      Kod: code.code,
+      "Foydalanuvchi nomi": code.user_codes[0]?.user.name || "Noma'lum",
+      "Telefon raqami": code.user_codes[0]?.user.phone || "Noma'lum",
+      "Telegram ID": code.user_codes[0]?.user.telegram_id,
+      Viloyat: code.user_codes[0].user.region || "Noma'lum",
+      "Faollashtirilgan vaqt": format(
+        code.user_codes[0]?.created_at,
+        "dd.MM.yyyy HH:mm:ss"
+      ),
     }));
 
     // Excel faylini yaratish
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Ishtirokchilar");
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      "Barcha Faollashtirilgan Kodlar"
+    );
 
     // Fayl nomini shakllantirish
-    const fileName = `O'yin_hafta_hisobot_${format(
-      latestGameWeek.startDate,
-      "dd.MM.yyyy"
-    )}_${format(latestGameWeek.endDate, "dd.MM.yyyy")}.xlsx`;
+    const fileName = `Umumiy_Hisobot_${format(
+      new Date(),
+      "dd.MM.yyyy_HH-mm-ss"
+    )}.xlsx`;
 
     // Faylni saqlash
     XLSX.writeFile(workbook, fileName);
@@ -221,81 +480,12 @@ bot.hears("O'yin haftalik hisobotini olish", async (ctx: any) => {
     fs.unlinkSync(fileName);
 
     ctx.reply(
-      `Hisobot yaratildi va yuborildi.\nIshtirokchilar soni: ${participants.length}`
+      `Umumiy hisobot yaratildi va yuborildi.\nJami faollashtirilgan kodlar soni: ${activatedCodes.length}`
     );
   } catch (error) {
     console.error("Hisobot yaratishda xatolik:", error);
     ctx.reply(
       "Hisobot yaratishda xatolik yuz berdi. Iltimos, keyinroq qayta urinib ko'ring."
-    );
-  }
-});
-
-bot.hears("Faollashtirilgan kodlar hisoboti", async (ctx: any) => {
-  const user_id = ctx.from?.id;
-
-  // Фойдаланувчини текшириш (админ эканлигини)
-  const user = await prisma.user.findFirst({
-    where: {
-      telegram_id: String(user_id),
-      role: "ADMIN", // Фақат админлар ҳисоботни ола олади
-    },
-  });
-
-  if (!user) {
-    return ctx.reply("Sizda bu amalni bajarish uchun huquq yo'q.");
-  }
-
-  try {
-    // Умумий фаоллаштирилган кодлар сонини ҳисоблаш
-    const totalActivatedCodes = await prisma.code.count({
-      where: {
-        isUsed: true,
-      },
-    });
-
-    // Энг сўнгги ўйин ҳафтасини топиш
-    const latestGameWeek = await prisma.gameWeek.findFirst({
-      orderBy: { endDate: "desc" },
-    });
-
-    let weeklyActivatedCodes = 0;
-    let weeklyActivatedCodesMessage = "";
-
-    if (latestGameWeek) {
-      // Охирги ўйин ҳафтасида фаоллаштирилган кодлар сонини ҳисоблаш
-      weeklyActivatedCodes = await prisma.code.count({
-        where: {
-          isUsed: true,
-          user_codes: {
-            some: {
-              created_at: {
-                gte: latestGameWeek.startDate,
-                lte: latestGameWeek.endDate,
-              },
-            },
-          },
-        },
-      });
-
-      weeklyActivatedCodesMessage =
-        `\n\nOxirgi o'yin haftasida faollashtirilgan kodlar soni: ${weeklyActivatedCodes}` +
-        `\n(${format(latestGameWeek.startDate, "dd.MM.yyyy")} - ${format(
-          latestGameWeek.endDate,
-          "dd.MM.yyyy"
-        )})`;
-    }
-
-    // Ҳисоботни юбориш
-    const reportMessage =
-      `Umumiy faollashtirilgan kodlar soni: ${totalActivatedCodes}` +
-      weeklyActivatedCodesMessage;
-
-    ctx.reply(reportMessage);
-  } catch (error) {
-    console.error("Faollashtirilgan kodlar hisobotini olishda xatolik:", error);
-    ctx.reply(
-      "Hisobot olishda xatolik yuz berdi. Iltimos, keyinroq qayta urinib ko'ring."
     );
   }
 });

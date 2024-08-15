@@ -85,7 +85,7 @@ scene.on("message", async (ctx: any) => {
     });
 
     await ctx.reply("Kod muvaffaqiyatli qo'shildi!");
-    return ctx.scene.leave();
+    return ctx.scene.start("control");
   } catch (error) {
     console.error("Kod qo'shishda xatolik:", error);
     await ctx.reply("Xatolik yuz berdi. Iltimos, keyinroq urinib ko'ring.");
