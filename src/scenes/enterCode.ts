@@ -85,11 +85,11 @@ scene.on("message", async (ctx: any) => {
     });
 
     await ctx.reply("Kod muvaffaqiyatli qo'shildi!");
-    return ctx.scene.start("control");
+    return ctx.scene.enter("control");
   } catch (error) {
     console.error("Kod qo'shishda xatolik:", error);
     await ctx.reply("Xatolik yuz berdi. Iltimos, keyinroq urinib ko'ring.");
-    return ctx.scene.leave();
+    return ctx.scene.enter("start");
   }
 });
 export default scene;
