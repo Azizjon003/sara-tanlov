@@ -26,7 +26,7 @@ bot.start(async (ctx: any) => {
 });
 
 bot.hears(
-  ["Yangi Taqdimot", "Balans", "Do'stlarimni taklif qilish", "Bosh menyu"], //  commandlar bot o'chib qolgan vaziyatda user qayta startni  bosganda javob berish uchun
+  ["📮Kodni yuborish", "🎁Sovg'alar", "📃Aksiya haqida"], //  commandlar bot o'chib qolgan vaziyatda user qayta startni  bosganda javob berish uchun
   async (ctx: any) => {
     ctx.reply("Nomalum buyruq.Qayta /start buyrug'ini bosing");
   }
@@ -44,6 +44,13 @@ bot.catch(async (err: any, ctx) => {
   console.log(err);
   console.log(`Ooops, encountered an error for ${ctx}`, err);
 });
+
+bot.telegram.setMyCommands([
+  {
+    command: "start",
+    description: "Botni qayta ishga tushirish",
+  },
+]);
 botStart(bot);
 
 process.on("uncaughtException", (error) => {
@@ -52,4 +59,8 @@ process.on("uncaughtException", (error) => {
 
 process.on("unhandledRejection", (reason, promise) => {
   console.log("Ushlanmagan rad etilgan va'da:", promise, "Sabab:", new Date());
+});
+
+process.on("uncaughtExceptionMonitor", (err, origin) => {
+  console.log(err, origin, "uncaughtExceptionMonitor");
 });
