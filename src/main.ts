@@ -51,14 +51,14 @@ bot.telegram.setMyCommands([
 ]);
 botStart(bot);
 
-// process.on("uncaughtException", (error) => {
-//   console.log("Ushlanmagan istisno:", error, "Sabab:", new Date());
-// });
+process.on("uncaughtException", (error) => {
+  console.log("Ushlanmagan istisno:", error, "Sabab:", new Date());
+});
 
-// process.on("unhandledRejection", (reason, promise) => {
-//   console.log("Ushlanmagan rad etilgan va'da:", promise, "Sabab:", new Date());
-// });
+process.on("unhandledRejection", (reason, promise) => {
+  console.log("Ushlanmagan rad etilgan va'da:", promise, "Sabab:", new Date());
+});
 
-// process.on("uncaughtExceptionMonitor", (err, origin) => {
-//   console.log(err, origin, "uncaughtExceptionMonitor");
-// });
+process.on("uncaughtExceptionMonitor", (err, origin) => {
+  console.log(err, origin, "uncaughtExceptionMonitor");
+});
