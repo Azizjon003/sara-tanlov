@@ -1,29 +1,27 @@
 require("dotenv").config();
-import { Context, Middleware } from "telegraf";
-import { SceneContext } from "telegraf/typings/scenes";
 import bot from "./core/bot";
 import session from "./core/session";
 import stage from "./scenes/index";
 import botStart from "./utils/startBot";
 import { subcribeFunk } from "./utils/subcribe";
 
-bot.use(session);
-bot.use(subcribeFunk);
+try {
+  bot.use(session);
+  bot.use(subcribeFunk);
 
-const middleware: Middleware<Context | SceneContext> = (ctx: any, next) => {
-  ctx?.session ?? (ctx.session = {});
-};
+  bot.use(stage.middleware());
 
-bot.use(stage.middleware());
+  bot.use((ctx: any, next) => {
+    console.log("next", ctx?.session);
+    return next();
+  });
 
-bot.use((ctx: any, next) => {
-  console.log("next", ctx?.session);
-  return next();
-});
-
-bot.start(async (ctx: any) => {
-  return await ctx.scene.enter("start");
-});
+  bot.start(async (ctx: any) => {
+    return await ctx.scene.enter("start");
+  });
+} catch (error) {
+  console.log(error, new Date(), "main.ts");
+}
 
 bot.hears(
   ["📮Kodni yuborish", "🎁Sovg'alar", "📃Aksiya haqida"], //  commandlar bot o'chib qolgan vaziyatda user qayta startni  bosganda javob berish uchun
