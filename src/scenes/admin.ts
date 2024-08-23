@@ -1,4 +1,4 @@
-import { format, subWeeks } from "date-fns";
+import { addHours, format, parseISO, subWeeks } from "date-fns";
 import fs from "fs";
 import { Scenes } from "telegraf";
 import * as XLSX from "xlsx";
@@ -7,7 +7,6 @@ import bot from "../core/bot";
 import { keyboards } from "../utils/keyboards";
 import { uzbekistanRegions } from "./contact";
 const scene = new Scenes.BaseScene("admin");
-const { format, utcToZonedTime } = require("date-fns-tz");
 
 scene.hears("/start", async (ctx: any) => {
   return await ctx.scene.enter("start");
@@ -461,7 +460,18 @@ bot.hears("Umumiy hisobot", async (ctx: any) => {
     // Excel fayli uchun ma'lumotlarni tayyorlash
     const worksheetData = activatedCodes.map((code, index) => {
       const createdAt = code.user_codes[0]?.created_at;
-      const zonedDate = createdAt ? utcToZonedTime(createdAt, timeZone) : null;
+      let formattedDate = "Noma'lum";
+
+      if (createdAt) {
+        // ISO formatidagi stringni sana obyektiga o'tkazamiz
+        const date = parseISO(createdAt.toISOString());
+
+        // Sanani O'zbekiston vaqtiga o'tkazamiz
+        const uzDate = addHours(date, 5);
+
+        // Sanani formatlashtiramiz
+        formattedDate = format(uzDate, "dd.MM.yyyy HH:mm:ss");
+      }
 
       return {
         "№": index + 1,
@@ -470,11 +480,10 @@ bot.hears("Umumiy hisobot", async (ctx: any) => {
         "Telefon raqami": code.user_codes[0]?.user.phone || "Noma'lum",
         "Telegram ID": code.user_codes[0]?.user.telegram_id,
         Viloyat: code.user_codes[0]?.user.region || "Noma'lum",
-        "Faollashtirilgan vaqt": zonedDate
-          ? format(zonedDate, "dd.MM.yyyy HH:mm:ss", { timeZone })
-          : "Noma'lum",
+        "Faollashtirilgan vaqt": formattedDate,
       };
     });
+
     // Excel faylini yaratish
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);
     const workbook = XLSX.utils.book_new();

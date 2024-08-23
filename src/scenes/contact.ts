@@ -53,9 +53,11 @@ scene.on("message", async (ctx: any) => {
   });
 
   if (isUser) {
-    return ctx.reply(
-      "Bu raqam boshqa foydalanuvchi tomonidan ishlatilmoqda.Qaytadan ishlatib ko'ring raqamni"
-    );
+    if (isUser.id !== user.id) {
+      return ctx.reply(
+        "Bu raqam boshqa foydalanuvchi tomonidan ishlatilmoqda.Qaytadan ishlatib ko'ring raqamni"
+      );
+    }
   }
 
   await prisma.user.update({

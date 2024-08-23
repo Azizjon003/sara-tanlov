@@ -4,8 +4,8 @@ import { keyboards } from "../utils/keyboards";
 const scene = new Scenes.BaseScene("start");
 
 export let keyboard = [
-  ["📮Kodni yuborish"],
-  ["🎁Sovg'alar", "📃Aksiya haqida"],
+  ["🔑 Kodni yuborish"],
+  ["🏆 Sovg'alar", "📢 Aksiya haqida", "Qo'llanma"],
 ];
 export let admin_keyboard = [
   ["Kodlarni yaratish", "Kanallar"],

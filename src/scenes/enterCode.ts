@@ -84,7 +84,9 @@ scene.on("message", async (ctx: any) => {
       data: { isUsed: true },
     });
 
-    await ctx.reply("Kod muvaffaqiyatli qo'shildi!");
+    await ctx.reply(
+      "Kod muvaffaqiyatli qo'shildi!\nYana kod yubormoqchi bo'lsangiz pastdagi Kodni yuborish tugmalaridan birini bosing."
+    );
     return ctx.scene.enter("control");
   } catch (error) {
     console.error("Kod qo'shishda xatolik:", error);
