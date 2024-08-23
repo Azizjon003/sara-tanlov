@@ -8,7 +8,7 @@ scene.hears("/start", async (ctx: any) => {
   return await ctx.scene.enter("start");
 });
 
-scene.hears("🏆 Sovg'alar", async (ctx) => {
+scene.hears(["🏆 Sovg'alar", "🎁Sovg'alar"], async (ctx) => {
   const text = await prisma.message.findFirst({
     where: {
       type: "sovga",
@@ -23,7 +23,7 @@ scene.hears("🏆 Sovg'alar", async (ctx) => {
   bot.telegram.copyMessage(ctx.from.id, chatId, Number(messageId), {});
 });
 
-scene.hears("📢 Aksiya haqida", async (ctx) => {
+scene.hears(["📢 Aksiya haqida", "📃Aksiya haqida"], async (ctx) => {
   const text = await prisma.message.findFirst({
     where: {
       type: "aksiya",
@@ -53,7 +53,7 @@ scene.hears("Qo'llanma", async (ctx: any) => {
   bot.telegram.copyMessage(ctx.from.id, chatId, Number(messageId), {});
 });
 
-scene.hears("🔑 Kodni yuborish", async (ctx: any) => {
+scene.hears(["🔑 Kodni yuborish", "📮Kodni yuborish"], async (ctx: any) => {
   ctx.reply("Kodni yuboring");
   ctx.session.codeAttempts = 0; // Urinishlar sonini kuzatish uchun
   return await ctx.scene.enter("enterCode");
