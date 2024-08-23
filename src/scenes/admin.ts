@@ -436,11 +436,12 @@ bot.hears("Umumiy hisobot", async (ctx: any) => {
           include: {
             user: true,
           },
+          orderBy: {
+            created_at: "desc",
+          },
         },
       },
-      orderBy: {
-        created_at: "desc",
-      },
+      orderBy: {},
     });
 
     // Excel fayli uchun ma'lumotlarni tayyorlash
