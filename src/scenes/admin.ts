@@ -7,6 +7,7 @@ import bot from "../core/bot";
 import { keyboards } from "../utils/keyboards";
 import { uzbekistanRegions } from "./contact";
 const scene = new Scenes.BaseScene("admin");
+const { format, utcToZonedTime } = require("date-fns-tz");
 
 scene.hears("/start", async (ctx: any) => {
   return await ctx.scene.enter("start");
@@ -456,20 +457,24 @@ bot.hears("Umumiy hisobot", async (ctx: any) => {
       // Sana bo'yicha teskari tartibda saralaymiz (eng yangisi birinchi)
       return dateB.getTime() - dateA.getTime();
     });
+    const timeZone = "Asia/Tashkent";
     // Excel fayli uchun ma'lumotlarni tayyorlash
-    const worksheetData = activatedCodes.map((code, index) => ({
-      "№": index + 1,
-      Kod: code.code,
-      "Foydalanuvchi nomi": code.user_codes[0]?.user.name || "Noma'lum",
-      "Telefon raqami": code.user_codes[0]?.user.phone || "Noma'lum",
-      "Telegram ID": code.user_codes[0]?.user.telegram_id,
-      Viloyat: code.user_codes[0].user.region || "Noma'lum",
-      "Faollashtirilgan vaqt": format(
-        code.user_codes[0]?.created_at,
-        "dd.MM.yyyy HH:mm:ss"
-      ),
-    }));
+    const worksheetData = activatedCodes.map((code, index) => {
+      const createdAt = code.user_codes[0]?.created_at;
+      const zonedDate = createdAt ? utcToZonedTime(createdAt, timeZone) : null;
 
+      return {
+        "№": index + 1,
+        Kod: code.code,
+        "Foydalanuvchi nomi": code.user_codes[0]?.user.name || "Noma'lum",
+        "Telefon raqami": code.user_codes[0]?.user.phone || "Noma'lum",
+        "Telegram ID": code.user_codes[0]?.user.telegram_id,
+        Viloyat: code.user_codes[0]?.user.region || "Noma'lum",
+        "Faollashtirilgan vaqt": zonedDate
+          ? format(zonedDate, "dd.MM.yyyy HH:mm:ss", { timeZone })
+          : "Noma'lum",
+      };
+    });
     // Excel faylini yaratish
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);
     const workbook = XLSX.utils.book_new();
