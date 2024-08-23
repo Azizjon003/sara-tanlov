@@ -427,7 +427,7 @@ bot.hears("Umumiy hisobot", async (ctx: any) => {
 
   try {
     // Barcha faollashtirilgan kodlarni olish
-    const activatedCodes = await prisma.code.findMany({
+    let activatedCodes = await prisma.code.findMany({
       where: {
         isUsed: true,
       },
@@ -444,6 +444,18 @@ bot.hears("Umumiy hisobot", async (ctx: any) => {
       orderBy: {},
     });
 
+    activatedCodes.sort((a, b) => {
+      // Har bir kod uchun eng so'nggi user_code sanasini olamiz
+      const dateA = a.user_codes[0]?.created_at;
+      const dateB = b.user_codes[0]?.created_at;
+
+      // // Agar biror kod uchun user_code mavjud bo'lmasa
+      // if (!dateA) return 1; // a ni ro'yxat oxiriga suramiz
+      // if (!dateB) return -1; // b ni ro'yxat oxiriga suramiz
+
+      // Sana bo'yicha teskari tartibda saralaymiz (eng yangisi birinchi)
+      return dateB.getTime() - dateA.getTime();
+    });
     // Excel fayli uchun ma'lumotlarni tayyorlash
     const worksheetData = activatedCodes.map((code, index) => ({
       "№": index + 1,
